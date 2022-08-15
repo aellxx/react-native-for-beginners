@@ -41,7 +41,10 @@ export default function App() {
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
+
+      {/* Work/Travel mode header */}
       <View style={styles.header}>
+        {/* Surround text with TouchableOpacity for mode change */}
         <TouchableOpacity onPress={work}>
           <Text style={{...styles.buttonText, color: working ? "white" : theme.gray}}>Work</Text>
         </TouchableOpacity>
@@ -49,6 +52,8 @@ export default function App() {
           <Text style={{...styles.buttonText, color: !working ? "white" : theme.gray}}>Travel</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Text input for to-do(work) or travel list (travel) */}
       <TextInput 
         placeholder={working ? "Add a To Do" : "Where do you want to go?"}
         style={styles.input}
