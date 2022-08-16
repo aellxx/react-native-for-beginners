@@ -16,6 +16,7 @@ import { StyleSheet,
 
 const MODE_STORAGE_KEY = "@workOrTravel";
 const TODO_STORAGE_KEY = "@toDos";
+const DONE_TODO_STORAGE_KEY = "@doneToDos";
 
 export default function App() {
   // change between work and travel
@@ -118,19 +119,12 @@ export default function App() {
     await saveToDos(deletedToDos);
   }
 
-  const deleteToDoItem = async (toDoKey, toDoType) => {
-    const editedToDos = {...toDoType};
-    // delete doneToDos[toDoKey] didn't work
-    delete editedToDos[toDoKey];
-    setToDos(editedToDos);
-    await saveToDos(editedToDos);
-  }
-
-  const checkOffToDo = (toDoKey) => {
+  const checkOffToDo = async (toDoKey) => {
     // alert(`checking off ${toDos[toDoKey].userInputText}`);
     toDos[toDoKey].done = true;
     const newDoneToDos = {...doneToDos, [Date.now()]: toDos[toDoKey]};
     setDoneToDos(newDoneToDos);
+    await saveDoneToDos(newDoneToDos);
     deleteToDo(toDoKey);
   }
 
@@ -141,10 +135,29 @@ export default function App() {
     setDoneToDos(deletedDoneToDos);
   }
 
+  // save the done toDos to a storage
+  const saveDoneToDos = async (doneToDos) => {
+    try {
+      await AsyncStorage.setItem(DONE_TODO_STORAGE_KEY, JSON.stringify(doneToDos));
+    } catch(e) {
+      alert("Error saving done to-dos");
+    }
+  }
+
+  const loadDoneToDos = async () => {
+    try {
+      const doneToDosString = await AsyncStorage.getItem(DONE_TODO_STORAGE_KEY);
+      doneToDosString !== null ? setDoneToDos(JSON.parse(doneToDosString)) : setDoneToDos({}); 
+    } catch(e) {
+      alert("Error loading done to-dos");
+    }
+  }
+
   // load toDos only once when the application loads
   useEffect(() => {
     loadPrevMode();
     loadToDos();
+    loadDoneToDos();
     // set loading status to false once done loading
     setIsLoading(false);
   }, []);
@@ -220,7 +233,7 @@ export default function App() {
                   doneToDos[toDoKey].working === working ? (
                     <View key={toDoKey} style={{...styles.toDoItemView, backgroundColor: theme.toDoBg}}>
                       <Text style={{...styles.toDoText, textDecorationLine: 'line-through', opacity: 0.5}}>{doneToDos[toDoKey].userInputText}</Text>
-                      <TouchableOpacity onPress={() => deleteToDoItem(toDoKey, doneToDos)} style={{opacity: 0.5}}>
+                      <TouchableOpacity onPress={() => deleteDoneToDo(toDoKey)} style={{opacity: 0.5}}>
                         <FontAwesome name="trash" size={24} color="white" />
                       </TouchableOpacity>
                     </View>
