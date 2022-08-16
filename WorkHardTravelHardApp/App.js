@@ -153,6 +153,22 @@ export default function App() {
     }
   }
 
+  const editToDoContent = async (text, toDoKey) => {
+    //toDos[toDoKey].userInputText = text;
+    const editedToDos = {...toDos};
+    editedToDos[toDoKey].userInputText = text;
+    setToDos(editedToDos);
+    await saveToDos(editedToDos);
+  }
+
+  const editToDo = (toDoKey) => {
+    // alert(`edit ${toDos[toDoKey].userInputText}?`);
+    Alert.prompt("Edit to-do", 
+                `Editing "${toDos[toDoKey].userInputText}"`,
+                (text) => editToDoContent(text, toDoKey)
+                );
+  }
+
   // load toDos only once when the application loads
   useEffect(() => {
     loadPrevMode();
@@ -210,6 +226,9 @@ export default function App() {
                     <View key={toDoKey} style={{...styles.toDoItemView, backgroundColor: theme.gray}}>
                       <Text style={styles.toDoText}>{toDos[toDoKey].userInputText}</Text>
                       <View style={styles.checkMarksView}>
+                        <TouchableOpacity onPress={() => editToDo(toDoKey)}>
+                          <FontAwesome style={styles.checkMarksText} name="pencil" size={24} color="white" />
+                        </TouchableOpacity>
                         <TouchableOpacity onPress={() => checkOffToDo(toDoKey)}>
                           <FontAwesome style={styles.checkMarksText} name="check" size={24} color="white" />
                         </TouchableOpacity>
@@ -289,7 +308,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   checkMarksText: {
-    marginRight: 15,
+    marginRight: 7,
   },
   loadingView: {
     height: "70%",
