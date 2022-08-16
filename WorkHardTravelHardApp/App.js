@@ -95,6 +95,7 @@ export default function App() {
     }
   }
 
+  // alert user before deleting a toDo 
   const alertBeforeDelete = (toDoKey) => Alert.alert(
     "Are you sure?", 
     `Deleting "${toDos[toDoKey].userInputText}"`,
@@ -119,6 +120,7 @@ export default function App() {
     await saveToDos(deletedToDos);
   }
 
+  // Check a to-do item from the list when done
   const checkOffToDo = async (toDoKey) => {
     // alert(`checking off ${toDos[toDoKey].userInputText}`);
     toDos[toDoKey].done = true;
@@ -128,11 +130,13 @@ export default function App() {
     deleteToDo(toDoKey);
   }
 
+  // get rid of something you already have finished
   const deleteDoneToDo = (toDoKey) => {
     // alert(`deleting a done to-do: ${doneToDos[toDoKey].userInputText}`)
     const deletedDoneToDos = {...doneToDos};
     delete deletedDoneToDos[toDoKey];
     setDoneToDos(deletedDoneToDos);
+    saveDoneToDos(deletedDoneToDos);
   }
 
   // save the done toDos to a storage
@@ -144,6 +148,7 @@ export default function App() {
     }
   }
 
+  // load finished items when restarted
   const loadDoneToDos = async () => {
     try {
       const doneToDosString = await AsyncStorage.getItem(DONE_TODO_STORAGE_KEY);
@@ -153,6 +158,7 @@ export default function App() {
     }
   }
 
+  // edit a toDo--only available when done
   const editToDoContent = async (text, toDoKey) => {
     //toDos[toDoKey].userInputText = text;
     const editedToDos = {...toDos};
@@ -161,6 +167,7 @@ export default function App() {
     await saveToDos(editedToDos);
   }
 
+  // use Alert API to prompt user to edit a toDo
   const editToDo = (toDoKey) => {
     // alert(`edit ${toDos[toDoKey].userInputText}?`);
     Alert.prompt("Edit to-do", 
@@ -177,8 +184,6 @@ export default function App() {
     // set loading status to false once done loading
     setIsLoading(false);
   }, []);
-
-  console.log(doneToDos);
 
   return (
     <View style={styles.container}>
