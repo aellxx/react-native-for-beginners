@@ -24,6 +24,8 @@ export default function App() {
   const [userInputText, setUserInputText] = useState("");
   // save toDos
   const [toDos, setToDos] = useState({});
+  // save finished tasks
+  const [doneToDos, setDoneToDos] = useState({});
   // loading status
   const [isLoading, setIsLoading] = useState(true);
 
@@ -54,7 +56,7 @@ export default function App() {
     if (userInputText === "") {
       return;
     } else {
-      const newToDos = {...toDos, [Date.now()]: {userInputText, working}};
+      const newToDos = {...toDos, [Date.now()]: {userInputText, working, done: false}};
       // Object.assign({}, toDos, {[Date.now()]: {userInputText, working}});
       setToDos(newToDos);
       await saveToDos(newToDos);
@@ -85,8 +87,6 @@ export default function App() {
   // load previous mode when restarted
   const loadPrevMode = async () => {
     try {
-      // const prevModeString = await AsyncStorage.getItem(MODE_STORAGE_KEY);
-      // const prevModeBool = prevModeString === "true" ? true : false;
       const prevMode = await AsyncStorage.getItem(MODE_STORAGE_KEY) === "true" ? true : false;
       setWorking(prevMode);
     } catch(e) {
@@ -111,11 +111,26 @@ export default function App() {
 
   // delete to-dos
   const deleteToDo = async (toDoKey) => {
-    const doneToDos = {...toDos};
+    const deletedToDos = {...toDos};
     // delete doneToDos[toDoKey] didn't work
-    delete doneToDos[toDoKey];
-    setToDos(doneToDos);
-    await saveToDos(doneToDos);
+    delete deletedToDos[toDoKey];
+    setToDos(deletedToDos);
+    await saveToDos(deletedToDos);
+  }
+
+  const checkOffToDo = (toDoKey) => {
+    // alert(`checking off ${toDos[toDoKey].userInputText}`);
+    toDos[toDoKey].done = true;
+    const newDoneToDos = {...doneToDos, [Date.now()]: toDos[toDoKey]};
+    setDoneToDos(newDoneToDos);
+    deleteToDo(toDoKey);
+  }
+
+  const deleteDoneToDo = (toDoKey) => {
+    // alert(`deleting a done to-do: ${doneToDos[toDoKey].userInputText}`)
+    const deletedDoneToDos = {...doneToDos};
+    delete deletedDoneToDos[toDoKey];
+    setDoneToDos(deletedDoneToDos);
   }
 
   // load toDos only once when the application loads
@@ -125,6 +140,8 @@ export default function App() {
     // set loading status to false once done loading
     setIsLoading(false);
   }, []);
+
+  console.log(doneToDos);
 
   return (
     <View style={styles.container}>
@@ -162,22 +179,49 @@ export default function App() {
           </View>
         ) : (
           <ScrollView>
-            {
-              Object.keys(toDos).map( (toDoKey) => 
-                // only display blocks when the mode recorded in the object === current system mode
-                // no need for an extra ScrollView 
-                toDos[toDoKey].working === working ? (
-                  <View key={toDoKey} style={styles.toDoView}>
-                    <Text style={styles.toDoText}>{toDos[toDoKey].userInputText}</Text>
-                    <TouchableOpacity onPress={() => alertBeforeDelete(toDoKey)}>
-                      <FontAwesome style={styles.toDoDelete} name="remove" size={24} color="black" />
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  null
+            {/* Task list scroll view */}
+            <ScrollView>
+              {
+                Object.keys(toDos).map( (toDoKey) => 
+                  // only display blocks when the mode recorded in the object === current system mode
+                  // no need for an extra ScrollView 
+                  toDos[toDoKey].working === working ? (
+                    <View key={toDoKey} style={{...styles.toDoItemView, backgroundColor: theme.gray}}>
+                      <Text style={styles.toDoText}>{toDos[toDoKey].userInputText}</Text>
+                      <View style={styles.checkMarksView}>
+                        <TouchableOpacity onPress={() => checkOffToDo(toDoKey)}>
+                          <FontAwesome style={styles.checkMarksText} name="check" size={24} color="white" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => alertBeforeDelete(toDoKey)}>
+                          <FontAwesome name="remove" size={24} color="white" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ) : (
+                    null
+                  )
                 )
-              )
-            }
+              }
+            </ScrollView>
+            {/* Done list scroll view */}
+            <ScrollView>
+            {
+                Object.keys(doneToDos).map( (toDoKey) => 
+                  // only display blocks when the mode recorded in the object === current system mode
+                  // no need for an extra ScrollView 
+                  doneToDos[toDoKey].working === working ? (
+                    <View key={toDoKey} style={{...styles.toDoItemView, backgroundColor: theme.toDoBg}}>
+                      <Text style={{...styles.toDoText, textDecorationLine: 'line-through', opacity: 0.5}}>{doneToDos[toDoKey].userInputText}</Text>
+                      <TouchableOpacity onPress={() => deleteDoneToDo(toDoKey)} style={{opacity: 0.5}}>
+                        <FontAwesome name="trash" size={24} color="white" />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    null
+                  )
+                )
+              }
+            </ScrollView>
           </ScrollView>
         )
       }
@@ -208,10 +252,9 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     fontSize: 18,
   },
-  toDoView: {
+  toDoItemView: {
     flexDirection: "row",
     justifyContent: "space-between",
-    backgroundColor: theme.gray,
     marginVertical: 5,
     paddingVertical: 20,
     paddingHorizontal: 35,
@@ -221,9 +264,11 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
   },
-  toDoDelete: {
-    color: "#fff",
-    fontSize: 18
+  checkMarksView: {
+    flexDirection: "row",
+  },
+  checkMarksText: {
+    marginRight: 15,
   },
   loadingView: {
     height: "70%",
@@ -233,5 +278,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#fff",
     marginTop: 10,
-  }
+  },
 });
