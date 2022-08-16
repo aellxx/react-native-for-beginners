@@ -118,6 +118,14 @@ export default function App() {
     await saveToDos(deletedToDos);
   }
 
+  const deleteToDoItem = async (toDoKey, toDoType) => {
+    const editedToDos = {...toDoType};
+    // delete doneToDos[toDoKey] didn't work
+    delete editedToDos[toDoKey];
+    setToDos(editedToDos);
+    await saveToDos(editedToDos);
+  }
+
   const checkOffToDo = (toDoKey) => {
     // alert(`checking off ${toDos[toDoKey].userInputText}`);
     toDos[toDoKey].done = true;
@@ -212,7 +220,7 @@ export default function App() {
                   doneToDos[toDoKey].working === working ? (
                     <View key={toDoKey} style={{...styles.toDoItemView, backgroundColor: theme.toDoBg}}>
                       <Text style={{...styles.toDoText, textDecorationLine: 'line-through', opacity: 0.5}}>{doneToDos[toDoKey].userInputText}</Text>
-                      <TouchableOpacity onPress={() => deleteDoneToDo(toDoKey)} style={{opacity: 0.5}}>
+                      <TouchableOpacity onPress={() => deleteToDoItem(toDoKey, doneToDos)} style={{opacity: 0.5}}>
                         <FontAwesome name="trash" size={24} color="white" />
                       </TouchableOpacity>
                     </View>
