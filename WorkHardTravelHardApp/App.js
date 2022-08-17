@@ -11,6 +11,7 @@ import { StyleSheet,
         ScrollView,
         ActivityIndicator,
         Alert,
+        Platform,
        } 
         from 'react-native';
 
@@ -95,21 +96,32 @@ export default function App() {
     }
   }
 
-  // alert user before deleting a toDo 
-  const alertBeforeDelete = (toDoKey) => Alert.alert(
-    "Are you sure?", 
-    `Deleting "${toDos[toDoKey].userInputText}"`,
-    [
-      {
-        text: "Oops",
-      },
-      {
-        text: "I'm sure",
-        onPress: async () => deleteToDo(toDoKey),
-        style: "destructive",
-      }
-    ]
-  );
+  const alertBeforeDelete = (toDoKey) => {
+    // if on web
+    if (Platform.OS === "web") {
+      const amSure = confirm("Are you sure?");
+      if (amSure) {
+        deleteToDo(toDoKey);
+      } 
+    } 
+    // ios and android
+    else {
+      Alert.alert(
+        "Are you sure?", 
+        `Deleting "${toDos[toDoKey].userInputText}"`,
+        [
+          {
+            text: "Oops",
+          },
+          {
+            text: "I'm sure",
+            onPress: async () => deleteToDo(toDoKey),
+            style: "destructive",
+          }
+        ]
+      );
+    } 
+  }
 
   // delete to-dos
   const deleteToDo = async (toDoKey) => {
